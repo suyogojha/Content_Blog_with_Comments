@@ -1,22 +1,39 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 
-{% block title %}    
-{{ post.title }}
-{% endblock title %}  
+{% block title %}
+{{post.title}}
+{% endblock %}
 
-    {% block content %}
+{% block content %}
+
       <div class="container">
         <div class="row justify-content-md-center pt-5">
-            <div class="col-md-8">
-            <a class="btn btn-info" href="{% url 'blog:home' %}">Back</a>
-            <div class="col-md-12"><h1> {{ post.title }}</h1></div>
-            <div class="col-md-12"><p> {{ post.content | safe }}</p></div>
-            <div class="col-md-12"><p> {{ post.author }}</p></div>
+          <div class="col-7"><h1>{{post.title}}</h1></div>
+          <div class="col-7"><p>{{post.content|safe}}</p></div>
+          <div class="col-md-7">
+              {% with comments.count as total_comments %}
+              <h2>
+              {{ total_comments }} comment{{ total_comments|pluralize }}
+              </h2>
+              {% endwith %}
+              {% for comment in comments %}
+                Comment {{ forloop.counter }} by {{ comment.name }}
+                on {{ comment.publish }}
+                {{ comment.content|linebreaks }}
+              {% empty %}
+                <p>There are no comments for this post.</p>
+              {% endfor %}
+                <h2>Make a new comment</h2>
+              <form id="myForm" method="post">
+              {{ comment_form.as_p }}
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+              </form>
           </div>
         </div>
       </div>
-    {% endblock content %}
+      <script>
+      $('#myForm').trigger("reset");
+      </script>
 
-
-   
-
+{% endblock %}
