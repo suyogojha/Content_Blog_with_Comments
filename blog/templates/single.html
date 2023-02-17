@@ -1,0 +1,22 @@
+{% extends "base.html" %} 
+
+{% block title %}    
+{{ post.title }}
+{% endblock title %}  
+
+    {% block content %}
+      <div class="container">
+        <div class="row justify-content-md-center pt-5">
+            <div class="col-md-8">
+            <a class="btn btn-info" href="{% url 'blog:home' %}">Back</a>
+            <div class="col-md-12"><h1> {{ post.title }}</h1></div>
+            <div class="col-md-12"><p> {{ post.content | safe }}</p></div>
+            <div class="col-md-12"><p> {{ post.author }}</p></div>
+          </div>
+        </div>
+      </div>
+    {% endblock content %}
+
+
+   
+
