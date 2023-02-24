@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from .models import Post, Comment, Category
-from .forms import NewCommentForm
+from .forms import *
 from django.views.generic import ListView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.db.models import Q
 
 def home(request):
 
@@ -59,3 +59,34 @@ def category_list(request):
         "category_list": category_list,
     }
     return context
+
+
+def post_search(request):
+    form = PostSearchForm()
+    q = ''
+    c = ''
+    results = []
+    query = Q()
+    if 'q' in request.GET:
+        form = PostSearchForm(request.GET)
+        if form.is_valid():
+            q = form.cleaned_data['q']
+            c = form.cleaned_data['c']
+            if c is not None:
+                query &= Q(category=c)
+            if q is not None:
+                query &= Q(title__contains=q)
+            results = Post.objects.filter(query)
+    
+    return render(request, 'search.html', {'form': form, 'q': q, 'results': results})
+
+
+
+
+
+
+
+
+
+
+
