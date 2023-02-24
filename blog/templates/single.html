@@ -9,29 +9,34 @@
       <div class="container">
         <div class="row justify-content-md-center pt-5">
           <div class="col-7"><h1>{{post.title}}</h1></div>
+          <div class="card mb-4 box-shadow">
+            <img class="card-img-top" src="https://picsum.photos/300/200" alt="Card image cap">
+          </div>
           <div class="col-7"><p>{{post.content|safe}}</p></div>
           <div class="col-md-7">
               {% with comments.count as total_comments %}
-              <h2>
-              {{ total_comments }} comment{{ total_comments|pluralize }}
-              </h2>
+                <h2>
+                {{ total_comments }} comment{{ total_comments|pluralize }}
+                </h2>
               {% endwith %}
               {% for comment in comments %}
-                Comment {{ forloop.counter }} by {{ comment.name }}
-                on {{ comment.publish }}
-                {{ comment.content|linebreaks }}
-              {% empty %}
-                <p>There are no comments for this post.</p>
+                  Comment {{ forloop.counter }} by {{ comment.name }}
+                  on {{ comment.publish }}
+                  {{ comment.content|linebreaks }}
+                  {% empty %}
+                  <p>There are no comments for this post.</p>
               {% endfor %}
-                <h2>Make a new comment</h2>
+
+              <h2>Make a new comment</h2>
               <form id="myForm" method="post">
-              {{ comment_form.as_p }}
-              {% csrf_token %}
-              <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+                {{ comment_form.as_p }}
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
               </form>
           </div>
         </div>
       </div>
+     
       <script>
       $('#myForm').trigger("reset");
       </script>

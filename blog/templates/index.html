@@ -6,23 +6,33 @@ Welcome to Blog
 
 {% block content %}
 
-<div class="container">
 
-  <div class="row justify-content-md-center">
+<div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row">
 
-  <div class="col-md-8 pt-5">
 
-  {% for post in posts %}
-    <div class="col-12"><h1>
-      <a class="text-dark" href="{{post.get_absolute_url}}">{{post.title}}</a>
-    </h1></div>
-    <div class="col-12"><p>{{post.excerpt}}</p></div>
-  {% endfor %}
+    {% for post in posts %}
+        <div class="col-md-4">
+        <a class="text-dark" href="{{post.get_absolute_url}}">
+          <div class="card mb-4 box-shadow">
+            <img class="card-img-top" src="{{ post.image.url }}" alt="Card image cap">
+            <div class="card-body">
+              <h2 style="font-size:18px;font-weight:bold">{{post.title|truncatechars:50}}</h2>
+              <p class="card-text">{{post.excerpt|truncatechars:50}}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">9 mins</small>
+              </div>
+            </div>
+          </div>
+          </a>
+        </div>
+    {% endfor %}
 
+
+      </div>
+    </div>
   </div>
 
-  </div>
-
-</div>
 
 {% endblock %}
