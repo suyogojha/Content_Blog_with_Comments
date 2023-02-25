@@ -1,5 +1,5 @@
 from django import forms
-from .models import *
+from .models import Comment, Category
 from mptt.forms import TreeNodeChoiceField
 
 
@@ -27,15 +27,13 @@ class NewCommentForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         Comment.objects.rebuild()
         return super(NewCommentForm, self).save(*args, **kwargs)
-    
+
+
 class PostSearchForm(forms.Form):
     q = forms.CharField()
     c = forms.ModelChoiceField(
-        queryset=Category.objects.all().order_by('name')
-    )
-    
-    #since this c is required so to change it we can do
-    # this is all styling form 
+        queryset=Category.objects.all().order_by('name'))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['c'].label = ''
@@ -43,4 +41,6 @@ class PostSearchForm(forms.Form):
         self.fields['c'].label = 'Category'
         self.fields['q'].label = 'Search For'
         self.fields['q'].widget.attrs.update(
-            {'class': 'form-control'})
+            {'class': 'form-control menudd'})
+        self.fields['q'].widget.attrs.update(
+            {'data-toggle': 'dropdown'})

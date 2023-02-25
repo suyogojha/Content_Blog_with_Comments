@@ -5,18 +5,14 @@ Welcome to Blog
 {% endblock %}
 
 {% block content %}
-
-
 <div class="album py-5 bg-light">
-    <div class="container">
-      <div class="row">
-
-
-    {% for post in posts %}
-        <div class="col-md-4">
+  <div class="container">
+    <div class="row">
+      {% for post in posts %}
+      <div class="col-md-4">
         <a class="text-dark" href="{{post.get_absolute_url}}">
           <div class="card mb-4 box-shadow">
-            <img class="card-img-top" src="{{ post.image.url }}" alt="Card image cap">
+            <img class="card-img-top" src="{{post.image.url}}" alt="{{ post.title }}">
             <div class="card-body">
               <h2 style="font-size:18px;font-weight:bold">{{post.title|truncatechars:50}}</h2>
               <p class="card-text">{{post.excerpt|truncatechars:50}}</p>
@@ -25,14 +21,10 @@ Welcome to Blog
               </div>
             </div>
           </div>
-          </a>
-        </div>
-    {% endfor %}
-
-
+        </a>
       </div>
+      {% endfor %}
     </div>
   </div>
-
-
+</div>
 {% endblock %}
