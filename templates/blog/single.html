@@ -1,10 +1,11 @@
-{% extends "base.html" %}
+{% extends "../base/base.html" %}
 
 {% block title %}
 {{post.title}}
 {% endblock %}
 
 {% block content %}
+{% include "base/nav-main.html" %}
 
 <style>
   @media screen and (min-width: 600px) {
@@ -98,6 +99,7 @@
     </div>
   </div>
 </div>
+
 <script>
   function formExit() {
     document.getElementById("newForm").remove();
@@ -131,4 +133,5 @@
   $('#myForm').trigger("reset");
 </script>
 
+{% include "base/footer.html" %}
 {% endblock %}

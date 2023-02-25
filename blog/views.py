@@ -4,15 +4,13 @@ from .forms import NewCommentForm, PostSearchForm
 from django.views.generic import ListView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
-from django.core import serializers
-from django.http import JsonResponse
 
 
 def home(request):
 
     all_posts = Post.newmanager.all()
 
-    return render(request, 'index.html', {'posts': all_posts})
+    return render(request, 'blog/index.html', {'posts': all_posts})
 
 
 def post_single(request, post):
@@ -41,11 +39,11 @@ def post_single(request, post):
             return HttpResponseRedirect('/' + post.slug)
     else:
         comment_form = NewCommentForm()
-    return render(request, 'single.html', {'post': post, 'comments':  user_comment, 'comments': comments, 'comment_form': comment_form, 'allcomments': allcomments, })
+    return render(request, 'blog/single.html', {'post': post, 'comments':  user_comment, 'comments': comments, 'comment_form': comment_form, 'allcomments': allcomments, })
 
 
 class CatListView(ListView):
-    template_name = 'category.html'
+    template_name = 'blog/category.html'
     context_object_name = 'catlist'
 
     def get_queryset(self):
@@ -65,24 +63,11 @@ def category_list(request):
 
 
 def post_search(request):
-    cat = Post.objects.all()
     form = PostSearchForm()
     q = ''
     c = ''
     results = []
     query = Q()
-
-    if request.POST.get('action') == 'post':
-        search_string = str(request.POST.get('ss'))
-
-        if search_string is not None:
-            search_string = Post.objects.filter(
-                title__contains=search_string)[:5]
-
-            data = serializers.serialize('json', list(
-                search_string), fields=('id', 'title', 'slug'))
-
-            return JsonResponse({'search_string': data})
 
     if 'q' in request.GET:
         form = PostSearchForm(request.GET)
@@ -97,8 +82,7 @@ def post_search(request):
 
             results = Post.objects.filter(query)
 
-    return render(request, 'search.html',
+    return render(request, 'blog/search.html',
                   {'form': form,
                    'q': q,
-                   'cat': cat,
                    'results': results})

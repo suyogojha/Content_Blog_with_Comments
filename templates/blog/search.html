@@ -1,23 +1,19 @@
-{% extends "base.html" %}
+{% extends "../base/base.html" %}
 {% block title %}Search Page{% endblock %}
 {% block content %}
+{% include "base/nav-main.html" %}
 <div class="container pt-5">
-
     {% if q %}
     <h1>Posts containing "{{ q }}"
-
         {% if c %}
         In category "{{ c }}"
         {% endif %}
-
     </h1>
     <p>
         {% with results.count as total_results %}
         Found {{ total_results }} result{{ total_results|pluralize }}
         {% endwith %}
     </p>
-
-
     <div class="album py-5 bg-light">
         <div class="container">
             <div class="row">
@@ -42,74 +38,15 @@
             </div>
         </div>
     </div>
-
-
     <p><a href="{% url "blog:post_search" %}" class="btn btn-primary" role="button" aria-disabled="true">New
             Search</a>
     </p>
     {% else %}
     <h1>Search for posts</h1>
-    <form class="dropdown" method="get">
-        {% csrf_token %}
-        {{ form.q }}
-
-        <ul class="dropdown-menu col-12 pl-2" role="menu" aria-labelledby="menu" id="list">
-            {% for i in cat %}
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">{{ i.title }}</a></li>
-                <div class="dropdown-divider"></div>
-            {% endfor %}
-        
-        </ul>
-
-        {{ form.c }}
-
+    <form method="get">
+        {{ form.as_p }}
         <input class="btn btn-primary my-1" type="submit" value="Search">
     </form>
     {% endif %}
-
 </div>
-
-
-<script>
-    $(document).on('keyup', '#id_q', function (e) {
-        e.preventDefault();
-
-        var minlength = 3;
-        var results = [];
-
-        if ($('#id_q').val().length >= minlength) {
-            $.ajax({
-                type: 'POST',
-                url: '{% url "blog:post_search" %}',
-                data: {
-                    ss: $('#id_q').val(),
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-                    action: 'post'
-                },
-                success: function (json) {
-
-                    $.each(JSON.parse(json.search_string), function (i, item) {
-
-                        results.push('<li class="my-2 pl-2"><a href="/' + item
-                            .fields.slug +
-                            '">' + item.fields.title +
-                            '</a></li>')
-                    })
-
-                    if (!$(".show")[0]) {
-                        $('.menudd').trigger('click')
-                    }
-
-                    document.getElementById("list").innerHTML = (!results.length) ?
-                        "No results match your query" : results.join('');
-                },
-                error: function (xhr, errmsg, err) {}
-            });
-        }
-    })
-</script>
-
-
-
-
 {% endblock %}
