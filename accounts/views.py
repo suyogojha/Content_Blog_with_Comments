@@ -38,7 +38,6 @@ def edit(request):
 
 @login_required
 def delete_user(request):
-
     if request.method == 'POST':
         user = User.objects.get(username=request.user)
         user.is_active = False
