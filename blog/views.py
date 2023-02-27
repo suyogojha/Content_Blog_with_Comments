@@ -4,6 +4,7 @@ from .forms import NewCommentForm, PostSearchForm
 from django.views.generic import ListView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
 
 def home(request):
@@ -16,6 +17,11 @@ def home(request):
 def post_single(request, post):
 
     post = get_object_or_404(Post, slug=post, status='published')
+
+    fav = bool
+
+    if post.favourites.filter(id=request.user.id).exists():
+        fav = True
 
     allcomments = post.comments.filter(status=True)
     page = request.GET.get('page', 1)
@@ -39,7 +45,7 @@ def post_single(request, post):
             return HttpResponseRedirect('/' + post.slug)
     else:
         comment_form = NewCommentForm()
-    return render(request, 'blog/single.html', {'post': post, 'comments':  user_comment, 'comments': comments, 'comment_form': comment_form, 'allcomments': allcomments, })
+    return render(request, 'blog/single.html', {'post': post, 'comments':  user_comment, 'comments': comments, 'comment_form': comment_form, 'allcomments': allcomments, 'fav': fav})
 
 
 class CatListView(ListView):
@@ -65,22 +71,19 @@ def category_list(request):
 def post_search(request):
     form = PostSearchForm()
     q = ''
-    c = ''
     results = []
-    query = Q()
 
     if 'q' in request.GET:
         form = PostSearchForm(request.GET)
         if form.is_valid():
             q = form.cleaned_data['q']
-            c = form.cleaned_data['c']
 
-            if c is not None:
-                query &= Q(category=c)
-            if q is not None:
-                query &= Q(title__contains=q)
+            vector = SearchVector('title', weight='A') + \
+                SearchVector('content', weight='B')
+            query = SearchQuery(q)
 
-            results = Post.objects.filter(query)
+            results = Post.objects.annotate(
+                rank=SearchRank(vector, query, cover_density=True)).order_by('-rank')
 
     return render(request, 'blog/search.html',
                   {'form': form,

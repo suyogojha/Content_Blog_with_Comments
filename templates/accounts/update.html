@@ -21,7 +21,7 @@
 
                 <form class="form-reset p-4 rounded update-form" method="post" enctype="multipart/form-data">
 
-                    {% if user_form.is_valid and profile_form.is_valid %}
+                    {% if user_form.is_valid and profile_form.is_valid  %}
                     <div class="alert alert-primary" role="alert">
                         Details successfully updated!
                     </div>
@@ -41,10 +41,9 @@
 
                     {% if profile_form.errors %}
                     <div class="alert alert-primary" role="alert">
-                        Error: Filesize incorrect - has to be 200px by 200px
+                        Error: Filesize incorrect - has to be 100px by 100px
                     </div>
                     {% endif %}
-
 
                     {% csrf_token %}
                     <label class="small font-weight-bold">{{ user_form.first_name.label}}</label>
@@ -54,13 +53,15 @@
                     <label class="small font-weight-bold">{{ user_form.email.label}}</label>
                     {{ user_form.email }}
 
-                    <label class="small font-weight-bold">{{ profile_form.bio.label }}</label>
+
+                    <label class="small font-weight-bold">{{ profile_form.bio.label}}</label>
                     {{ profile_form.bio }}
 
                     <div class="form-group pt-5">
-                        <label class="small font-weight-bold">{{ profile_form.avatar.label }}</label>
-                        {{ profile_form.avatar }}
+                        <label class="small font-weight-bold">{{ profile_form.avatar.label}}</label>
+                        {{ profile_form.avatar}}
                     </div>
+
 
                     <button class="btn btn-primary btn-block py-2 mb-4 mt-5 font-weight-bold" type="submit"
                         value="Save changes">Save Changes</button>

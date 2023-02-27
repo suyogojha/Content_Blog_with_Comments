@@ -32,12 +32,25 @@ class Post(models.Model):
     excerpt = models.TextField(null=True)
     image = models.ImageField(
         upload_to=user_directory_path, default='posts/default.jpg')
+    image_caption = models.CharField(max_length=100, default='Photo by Blog')
     slug = models.SlugField(max_length=250, unique_for_date='publish')
     publish = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='blog_posts')
     content = models.TextField()
-    status = models.CharField(max_length=10, choices=options, default='draft')
+    status = models.CharField(
+        max_length=10, choices=options, default='published')
+    favourites = models.ManyToManyField(
+        User, related_name='favourite', default=None, blank=True)
+    likes = models.ManyToManyField(
+        User, related_name='like', default=None, blank=True)
+    like_count = models.BigIntegerField(default='0')
+
+
+    thumbsup = models.IntegerField(default='0')
+    thumbsdown = models.IntegerField(default='0')
+    thumbs = models.ManyToManyField(User, related_name='thumbs', default=None, blank=True)
+
     objects = models.Manager()  # default manager
     newmanager = NewManager()  # custom manager
 
@@ -69,3 +82,11 @@ class Comment(MPTTModel):
 
     def __str__(self):
         return self.name
+
+class Vote(models.Model):
+
+    post = models.ForeignKey(Post, related_name='postid',
+                             on_delete=models.CASCADE, default=None, blank=True)
+    user = models.ForeignKey(User, related_name='userid',
+                             on_delete=models.CASCADE, default=None, blank=True)
+    vote = models.BooleanField(default=True)

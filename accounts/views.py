@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.sites.shortcuts import get_current_site
@@ -10,23 +10,176 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from .forms import RegistrationForm, UserEditForm, UserProfileForm
 from .tokens import account_activation_token
-from blog.forms import *
-from blog.models import *
-from blog.views import *
-from .models import *
+from .models import Profile
+from blog.models import Post, Vote
+from django.http import JsonResponse
+from django.db.models import F
+from django.db.models import Q
 
 
+def thumbs(request):
 
-@login_required
+    if request.POST.get('action') == 'thumbs':
+
+        id = int(request.POST.get('postid'))
+        button = request.POST.get('button')
+        update = Post.objects.get(id=id)
+
+        if update.thumbs.filter(id=request.user.id).exists():
+
+            # Get the users current vote (True/False)
+            q = Vote.objects.get(
+                Q(post_id=id) & Q(user_id=request.user.id))
+            evote = q.vote
+
+            if evote == True:
+
+                # Now we need action based upon what button pressed
+
+                if button == 'thumbsup':
+
+                    update.thumbsup = F('thumbsup') - 1
+                    update.thumbs.remove(request.user)
+                    update.save()
+                    update.refresh_from_db()
+                    up = update.thumbsup
+                    down = update.thumbsdown
+                    q.delete()
+
+                    return JsonResponse({'up': up, 'down': down, 'remove': 'none'})
+
+                if button == 'thumbsdown':
+
+                    # Change vote in Post
+                    update.thumbsup = F('thumbsup') - 1
+                    update.thumbsdown = F('thumbsdown') + 1
+                    update.save()
+
+                    # Update Vote
+
+                    q.vote = False
+                    q.save(update_fields=['vote'])
+
+                    # Return updated votes
+                    update.refresh_from_db()
+                    up = update.thumbsup
+                    down = update.thumbsdown
+
+                    return JsonResponse({'up': up, 'down': down})
+
+            pass
+
+            if evote == False:
+
+                if button == 'thumbsup':
+
+                    # Change vote in Post
+                    update.thumbsup = F('thumbsup') + 1
+                    update.thumbsdown = F('thumbsdown') - 1
+                    update.save()
+
+                    # Update Vote
+
+                    q.vote = True
+                    q.save(update_fields=['vote'])
+
+                    # Return updated votes
+                    update.refresh_from_db()
+                    up = update.thumbsup
+                    down = update.thumbsdown
+
+                    return JsonResponse({'up': up, 'down': down})
+
+                if button == 'thumbsdown':
+
+                    update.thumbsdown = F('thumbsdown') - 1
+                    update.thumbs.remove(request.user)
+                    update.save()
+                    update.refresh_from_db()
+                    up = update.thumbsup
+                    down = update.thumbsdown
+                    q.delete()
+
+                    return JsonResponse({'up': up, 'down': down, 'remove': 'none'})
+
+        else:        # New selection
+
+            if button == 'thumbsup':
+                update.thumbsup = F('thumbsup') + 1
+                update.thumbs.add(request.user)
+                update.save()
+                # Add new vote
+                new = Vote(post_id=id, user_id=request.user.id, vote=True)
+                new.save()
+            else:
+                # Add vote down
+                update.thumbsdown = F('thumbsdown') + 1
+                update.thumbs.add(request.user)
+                update.save()
+                # Add new vote
+                new = Vote(post_id=id, user_id=request.user.id, vote=False)
+                new.save()
+
+            # Return updated votes
+            update.refresh_from_db()
+            up = update.thumbsup
+            down = update.thumbsdown
+
+            return JsonResponse({'up': up, 'down': down})
+
+    pass
+
+
+@ login_required
+def like(request):
+    if request.POST.get('action') == 'post':
+        result = ''
+        id = int(request.POST.get('postid'))
+        post = get_object_or_404(Post, id=id)
+        if post.likes.filter(id=request.user.id).exists():
+            post.likes.remove(request.user)
+            post.like_count -= 1
+            result = post.like_count
+            post.save()
+        else:
+            post.likes.add(request.user)
+            post.like_count += 1
+            result = post.like_count
+            post.save()
+
+        return JsonResponse({'result': result, })
+
+
+@ login_required
+def favourite_list(request):
+    new = Post.newmanager.filter(favourites=request.user)
+    return render(request,
+                  'accounts/favourites.html',
+                  {'new': new})
+
+
+@ login_required
+def favourite_add(request, id):
+    post = get_object_or_404(Post, id=id)
+    if post.favourites.filter(id=request.user.id).exists():
+        post.favourites.remove(request.user)
+    else:
+        post.favourites.add(request.user)
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
 def avatar(request):
-    user = User.objects.get(username=request.user)
-    avatar = Profile.objects.filter(user=user)
-    context = {
-        "avatar": avatar,
-    }
-    return context
-
-
+    if request.user.is_authenticated:
+        user = User.objects.get(username=request.user)
+        avatar = Profile.objects.filter(user=user)
+        context = {
+            "avatar": avatar,
+        }
+        return context
+    else:
+        return {
+            'NotLoggedIn': User.objects.none()
+        }
 
 
 @login_required
@@ -41,24 +194,25 @@ def edit(request):
     if request.method == 'POST':
         user_form = UserEditForm(instance=request.user,
                                  data=request.POST)
-        
-        profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+
+        profile_form = UserProfileForm(
+            request.POST, request.FILES, instance=request.user.profile)
+
         if profile_form.is_valid() and user_form.is_valid():
             user_form.save()
             profile_form.save()
     else:
         user_form = UserEditForm(instance=request.user)
         profile_form = UserProfileForm(instance=request.user.profile)
+
     return render(request,
                   'accounts/update.html',
-                  {
-                      'user_form': user_form,
-                      'profile_form': profile_form
-                   })
+                  {'user_form': user_form, 'profile_form': profile_form})
 
 
 @login_required
 def delete_user(request):
+
     if request.method == 'POST':
         user = User.objects.get(username=request.user)
         user.is_active = False

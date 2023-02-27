@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, PasswordChangeForm, SetPasswordForm
-from .models import *
+from accounts.models import Profile
+
 # https://docs.djangoproject.com/en/3.0/topics/auth/default/
 # https://docs.djangoproject.com/en/3.0/topics/forms/
 
@@ -127,10 +128,11 @@ class UserEditForm(forms.ModelForm):
 
 
 class UserProfileForm(forms.ModelForm):
+
     class Meta:
         model = Profile
         fields = ['bio', 'avatar']
 
         widgets = {
-            'bio': forms.Textarea({'class': 'form-control', 'rows': '5'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': '5'}),
         }
