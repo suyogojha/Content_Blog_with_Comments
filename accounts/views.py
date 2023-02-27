@@ -8,11 +8,25 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from .forms import RegistrationForm, UserEditForm
+from .forms import RegistrationForm, UserEditForm, UserProfileForm
 from .tokens import account_activation_token
 from blog.forms import *
 from blog.models import *
 from blog.views import *
+from .models import *
+
+
+
+@login_required
+def avatar(request):
+    user = User.objects.get(username=request.user)
+    avatar = Profile.objects.filter(user=user)
+    context = {
+        "avatar": avatar,
+    }
+    return context
+
+
 
 
 @login_required
@@ -27,13 +41,20 @@ def edit(request):
     if request.method == 'POST':
         user_form = UserEditForm(instance=request.user,
                                  data=request.POST)
-        if user_form.is_valid():
+        
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        if profile_form.is_valid() and user_form.is_valid():
             user_form.save()
+            profile_form.save()
     else:
         user_form = UserEditForm(instance=request.user)
+        profile_form = UserProfileForm(instance=request.user.profile)
     return render(request,
                   'accounts/update.html',
-                  {'user_form': user_form})
+                  {
+                      'user_form': user_form,
+                      'profile_form': profile_form
+                   })
 
 
 @login_required
