@@ -15,6 +15,7 @@ from blog.models import Post, Vote
 from django.http import JsonResponse
 from django.db.models import F
 from django.db.models import Q
+from blog.forms import *
 
 
 def thumbs(request):

@@ -21,9 +21,9 @@ class Profile(models.Model):
             raise ValidationError("x")
         else:
             w, h = get_image_dimensions(self.avatar)
-            if w != 200:
+            if w != 500:
                 raise ValidationError("x")
-            if h != 200:
+            if h != 500:
                 raise ValidationError("x")
 
     def __str__(self):
